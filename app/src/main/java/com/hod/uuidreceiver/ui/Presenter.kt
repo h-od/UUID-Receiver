@@ -1,9 +1,13 @@
 package com.hod.uuidreceiver.ui
 
+import com.hod.uuidreceiver.data.DataContract
 import com.hod.uuidreceiver.ui.contract.AbsPresenter
 import io.reactivex.Observable
+import io.reactivex.Scheduler
 
-class MainPresenter: AbsPresenter<MainPresenter.View>() {
+class MainPresenter(
+        private val dataManager: DataContract, private val mainThread: Scheduler
+) : AbsPresenter<MainPresenter.View>() {
 
     override fun onViewAttached(view: View) {
         subscribeForInitialData(view)
