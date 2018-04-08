@@ -10,7 +10,7 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.StrictStubs::class)
-class DataManagerTest() {
+class DataManagerTest {
 
     private lateinit var dataManager: DataManager
 
