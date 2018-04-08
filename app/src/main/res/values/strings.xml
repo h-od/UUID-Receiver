@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">UUID Receiver</string>
+
+    <!--Default Values-->
+    <string name="no_response_code">No response code</string>
+    <string name="no_fetches">Times fetched: 0</string>
+
+    <!--Place holders-->
+    <string name="response_code">Response Code: </string>
+    <string name="fetched_times">Times fetched: %s</string>
+
+    <!--Labels-->
+    <string name="fetch_content">Fetch Code</string>
+    <string name="error">An error occurred!</string>
+</resources>
