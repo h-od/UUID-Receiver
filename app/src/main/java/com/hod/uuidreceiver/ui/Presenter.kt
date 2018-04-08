@@ -16,16 +16,43 @@ class MainPresenter(
     }
 
     private fun subscribeForInitialData(view: View) {
-        TODO("show last fetched data when app starts")
+        dataManager.fetchPrevious()
+                .map { it.toModel() }
+                .subscribeUntilDetached({ view.handle(it) }, { view.handle(it) })
     }
 
     private fun subscribeToClicks(view: View) {
-        TODO("when button is clicked, trigger new call to fetch data")
+        view.fetchClicked()
+                .fetchData()
+                .subscribeUntilDetached({ view.handle(it) }, { view.handle(it) })
     }
 
     private fun subscribeForErrorRecovery(view: View) {
-        TODO("when error occurs in the stream, need to resubscribe")
+        view.errorDismissed()
+                .subscribeUntilDetached { subscribeToClicks(view) }
     }
+
+    private fun View.handle(result: Model) {
+
+        if (result.count.isPositive()) showCount(result.count)
+
+        if (result.code.isNotBlank()) {
+            showResponseCode(result.code)
+        } else {
+            showNoResponseCode()
+        }
+    }
+
+    private fun View.handle(result: Throwable) = showError(result.message)
+
+    private fun Observable<Unit>.fetchData(): Observable<Model> =
+            flatMap { _ ->
+                dataManager.fetch()
+                        .observeOn(mainThread)
+                        .map { it.toModel() }
+            }
+
+    private fun Int.isPositive(): Boolean = this > 0
 
     interface View : AbsPresenter.View {
         fun fetchClicked(): Observable<Unit>
