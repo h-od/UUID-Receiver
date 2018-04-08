@@ -6,7 +6,7 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class AbsPresenter<in V : View> {
+abstract class AbsPresenter<in V : AbsPresenter.View> {
 
     private val viewSubscriptions by lazy { CompositeDisposable() }
 
@@ -30,6 +30,5 @@ abstract class AbsPresenter<in V : View> {
     protected fun <T> Single<T>.subscribeUntilDetached(onNext: (T) -> Unit, onError: (Throwable) -> Unit): Disposable =
             subscribe(onNext, onError).apply { clearOnDetached(this) }
 
+    interface View
 }
-
-interface View
