@@ -23,7 +23,7 @@ class DataManagerTest {
     }
 
     @Test
-    fun givenFetchIsCalledReturnsEntity() {
+    fun `fetch returns entity`() {
         val nextPath = "nextPath"
         val responseCode = "responseCode"
 
@@ -40,7 +40,7 @@ class DataManagerTest {
     }
 
     @Test
-    fun givenFetchPreviousIsCalledReturnsPreviousEntity() {
+    fun `fetch previous returns entity`() {
         val entity = Entity(responseCode =  "responseCode", count = 5)
 
         BDDMockito.doReturn(entity).`when`(storage).fetch()
