@@ -9,6 +9,7 @@ import dagger.Component
 import dagger.Module
 import dagger.Provides
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Singleton
 
 @Singleton
@@ -31,5 +32,5 @@ class PresenterModule {
     @Provides
     @Singleton
     fun providePresenter(dataManager: DataContract): MainPresenter =
-            MainPresenter(dataManager, AndroidSchedulers.mainThread())
+            MainPresenter(dataManager, AndroidSchedulers.mainThread(), Schedulers.io())
 }

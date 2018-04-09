@@ -6,7 +6,7 @@ import io.reactivex.Observable
 import io.reactivex.Scheduler
 
 class MainPresenter(
-        private val dataManager: DataContract, private val mainThread: Scheduler
+        private val dataManager: DataContract, private val mainThread: Scheduler, private val backgroundThread: Scheduler
 ) : AbsPresenter<MainPresenter.View>() {
 
     override fun onViewAttached(view: View) {
@@ -48,6 +48,7 @@ class MainPresenter(
     private fun Observable<Unit>.fetchData(): Observable<Model> =
             flatMap { _ ->
                 dataManager.fetch()
+                        .subscribeOn(backgroundThread)
                         .observeOn(mainThread)
                         .map { it.toModel() }
             }

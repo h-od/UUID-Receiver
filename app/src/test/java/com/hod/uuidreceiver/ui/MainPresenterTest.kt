@@ -25,7 +25,7 @@ class MainPresenterTest {
 
     @Before
     fun setUp() {
-        presenter = MainPresenter(dataManager, Schedulers.trampoline())
+        presenter = MainPresenter(dataManager, Schedulers.trampoline(), Schedulers.trampoline())
 
         Mockito.doReturn(fetchClicks).`when`(view).fetchClicked()
         Mockito.doReturn(dismissError).`when`(view).errorDismissed()
