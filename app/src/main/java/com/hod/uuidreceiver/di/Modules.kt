@@ -14,28 +14,49 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
-interface DataModule {
+interface Component: PresenterModule, DataModule, LocalStorageModule, NetworkModule
+
+interface PresenterModule {
+
     val presenter: MainPresenter
+
+    class Impl(dataContract: DataContract) : PresenterModule {
+        override val presenter: MainPresenter by lazy { MainPresenter(dataContract, AndroidSchedulers.mainThread(), Schedulers.io()) }
+    }
+}
+
+interface DataModule {
 
     val dataManager: DataContract
 
-    val local: Local
-    val network: Remote
+    class Impl(local: Local, network: Remote) : DataModule {
+        override val dataManager: DataContract by lazy { DataManager(local, network) }
+    }
+}
 
+interface LocalStorageModule {
+
+    val local: Local
     val sharedPreferences: SharedPreferences
+
+    class Impl(context: Context) : LocalStorageModule {
+        override val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        override val local: Local = LocalStorage(sharedPreferences)
+    }
+}
+
+interface NetworkModule {
+    val network: Remote
 
     val retrofit: Retrofit
     val httpClient: OkHttpClient
     val loggingInterceptor: HttpLoggingInterceptor
 
-    class Impl(context: Context) : DataModule {
-
-        override val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-
+    class Impl() : NetworkModule {
         override val loggingInterceptor: HttpLoggingInterceptor =
                 HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
-        override val httpClient: OkHttpClient=
+        override val httpClient: OkHttpClient =
                 OkHttpClient.Builder()
                         .addInterceptor(loggingInterceptor)
                         .hostnameVerifier { _, _ -> true }
@@ -49,12 +70,6 @@ interface DataModule {
                         .client(httpClient)
                         .build()
 
-        override val local: Local = LocalStorage(sharedPreferences)
-
         override val network: Remote = retrofit.create<Remote>(Remote::class.java)
-
-        override val dataManager: DataContract = DataManager(local, network)
-
-        override val presenter: MainPresenter by lazy { MainPresenter(dataManager, AndroidSchedulers.mainThread(), Schedulers.io()) }
     }
 }
