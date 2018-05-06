@@ -10,11 +10,11 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), MainPresenter.View {
 
-    @Inject lateinit var presenter: MainPresenter
+    private val component by lazy { (application as App).component }
+    private val presenter by lazy { component.presenter }
 
     private val errorDismissedPublishSubject: PublishSubject<Unit> = PublishSubject.create()
 
@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity(), MainPresenter.View {
     }
 
     private fun initialiseView() {
-        (application as App).component.inject(this)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
     }

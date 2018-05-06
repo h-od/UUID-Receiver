@@ -5,53 +5,56 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import com.hod.uuidreceiver.BuildConfig.BASE_URL
 import com.hod.uuidreceiver.data.*
-import dagger.Module
-import dagger.Provides
+import com.hod.uuidreceiver.ui.MainPresenter
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
 
-@Module
-class DataModule {
-    @Provides
-    @Singleton
-    fun provideDataManager(local: Local, network: Remote): DataContract = DataManager(local, network)
+interface DataModule {
+    val presenter: MainPresenter
 
-    @Provides
-    @Singleton
-    fun provideSharedPrefs(context: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    val dataManager: DataContract
 
-    @Provides
-    @Singleton
-    fun provideLocalStorage(prefs: SharedPreferences): Local = LocalStorage(prefs)
+    val local: Local
+    val network: Remote
 
-    @Provides
-    @Singleton
-    fun provideNetworkService(retrofit: Retrofit): Remote = retrofit.create<Remote>(Remote::class.java)
+    val sharedPreferences: SharedPreferences
 
-    @Provides
-    @Singleton
-    fun provideRetrofit(client: OkHttpClient): Retrofit =
-            Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)
-                    .build()
+    val retrofit: Retrofit
+    val httpClient: OkHttpClient
+    val loggingInterceptor: HttpLoggingInterceptor
 
-    @Provides
-    @Singleton
-    fun provideHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-            OkHttpClient.Builder()
-                    .addInterceptor(loggingInterceptor)
-                    .hostnameVerifier { _, _ -> true }
-                    .build()
+    class Impl(context: Context) : DataModule {
 
-    @Provides
-    @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
-            HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+        override val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+        override val loggingInterceptor: HttpLoggingInterceptor =
+                HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+
+        override val httpClient: OkHttpClient=
+                OkHttpClient.Builder()
+                        .addInterceptor(loggingInterceptor)
+                        .hostnameVerifier { _, _ -> true }
+                        .build()
+
+        override val retrofit: Retrofit =
+                Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(httpClient)
+                        .build()
+
+        override val local: Local = LocalStorage(sharedPreferences)
+
+        override val network: Remote = retrofit.create<Remote>(Remote::class.java)
+
+        override val dataManager: DataContract = DataManager(local, network)
+
+        override val presenter: MainPresenter by lazy { MainPresenter(dataManager, AndroidSchedulers.mainThread(), Schedulers.io()) }
+    }
 }
